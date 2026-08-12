@@ -1,20 +1,31 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
 require('dotenv').config();
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'freelance_marketplace_system',
-  port: process.env.DB_PORT || 3306
+const pool = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  charset: 'utf8mb4',
+
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 
-db.connect(err => {
+pool.getConnection((err, connection) => {
   if (err) {
-    console.log('❌ Database connection failed:', err.message);
-    return;
+    console.error('❌ DB Connection Failed');
+    console.error(err);
+    process.exit(1);
   }
-  console.log('✅ Connected to MySQL successfully');
+
+  console.log('✅ Connected to MySQL');
+
+  connection.release();
 });
 
-module.exports = db;
+module.exports = pool;
